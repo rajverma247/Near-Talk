@@ -51,6 +51,12 @@ class MainActivity : Activity(), Conn.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prefs = getSharedPreferences("neartalk", MODE_PRIVATE)
+        val oldHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            prefs.edit().putString("crash", android.util.Log.getStackTraceString(e).take(600)).commit()
+            oldHandler?.uncaughtException(t, e)
+        }
         adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
         val a = adapter
         if (a == null) { toast("This phone has no Bluetooth"); finish(); return }
@@ -108,6 +114,7 @@ class MainActivity : Activity(), Conn.Callback {
         root.addView(listView, LinearLayout.LayoutParams(match, 0, 1f))
         root.addView(row3)
         setContentView(root)
+        prefs.getString("crash", null)?.let { status.text = "Last crash: $it"; prefs.edit().remove("crash").apply() }
 
         val need = ArrayList<String>()
         need.add(Manifest.permission.RECORD_AUDIO)

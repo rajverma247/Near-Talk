@@ -47,7 +47,7 @@ class Conn(private val adapter: BluetoothAdapter, private val cb: Callback) {
                 val s = server!!.accept()
                 server?.close()
                 attach(s, g)
-            } catch (e: IOException) { post(g, "Stopped: ${e.message}") }
+            } catch (e: Exception) { post(g, "Stopped: ${e.message}") }
         }.start()
     }
 
@@ -55,12 +55,11 @@ class Conn(private val adapter: BluetoothAdapter, private val cb: Callback) {
         val g = stopAll()
         Thread {
             try {
-                adapter.cancelDiscovery()
                 post(g, "Connecting…")
                 val s = d.createRfcommSocketToServiceRecord(APP_UUID)
                 s.connect()
                 attach(s, g)
-            } catch (e: IOException) { post(g, "Connect failed: ${e.message}") }
+            } catch (e: Exception) { post(g, "Connect failed: ${e.message}") }
         }.start()
     }
 
@@ -78,7 +77,7 @@ class Conn(private val adapter: BluetoothAdapter, private val cb: Callback) {
                 inp.readFully(d)
                 cb.onFrame(t, d)
             }
-        } catch (e: IOException) { }
+        } catch (e: Exception) { }
         connected = false
         try { s.close() } catch (e: IOException) { }
         post(g, "Disconnected")
@@ -90,7 +89,7 @@ class Conn(private val adapter: BluetoothAdapter, private val cb: Callback) {
                 val o = out ?: throw IOException("no link")
                 synchronized(o) { o.writeByte(type); o.writeInt(data.size); o.write(data); o.flush() }
                 true
-            } catch (e: IOException) { false }
+            } catch (e: Exception) { false }
             done?.invoke(ok)
         }
     }
